@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from itertools import permutations
 
-waits = pd.read_csv('/href/scratch3/m1gek00/project/waits.csv')
+waits = pd.read_csv()
 
 waits_sel = waits[['Seven Dwarfs Mine Train', 'Space Mountain', 'Splash Mountain',
                    'Big Thunder Mountain Railroad', 'Jungle Cruise', 'Peter Pan’s Flight']]
