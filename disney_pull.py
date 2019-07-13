@@ -22,7 +22,7 @@ for d in date:
     
     ## Turn in to BeautifulSoup and find scripts
     soup = BeautifulSoup(html.text)
-    script = soup.find_all('script',)
+    script = soup.find_all('script')
     
     ## Find ride titles
     title = [re.findall('title: \"(.*) -', i.text) for i in script]
