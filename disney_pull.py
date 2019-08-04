@@ -12,7 +12,7 @@ import pandas as pd
 import re
 
 ## Set dates we want to pull from touringplans.com
-date = pd.date_range(start = '2019-06-01', end = '2019-06-02')
+date = pd.date_range(start = '2019-06-09', end = '2019-06-30')
 
 ## Loop for each date
 for d in date:
@@ -22,22 +22,42 @@ for d in date:
     
     ## Turn in to BeautifulSoup and find scripts
     soup = BeautifulSoup(html.text)
-    script = soup.find_all('script')
+    script = soup.find_all('script', type = 'text/javascript')
     
-    ## Find ride titles
-    title = [re.findall('title: \"(.*) -', i.text) for i in script]
-    title = list(filter(None, title))
+    for i in script:
+        ## Only look at scripts that are rides
+        if re.search('title: \"(.*) -', i.text) != None:
+            ## Find and clean the title
+            title = re.findall('title: \"(.*) -', i.text)[0]
+            title = title.replace('\\','').replace('~', '-')
+            
+            ## Find the column for recorded wait
+            time_wait = re.findall(
+                    'new Date\((.+)\),,,,,,,,(\d+),,,,,null,,null', i.text)
+            
+            ## Find the dates and wait, replacing month with June because of
+            ##      error that says May
+            datetime = [j[0].replace('2019,5', '2019,6') for j in time_wait]
+            wait = [j[1] for j in time_wait]
+            
+            ## Put in dataframe and write to csv
+            df = pd.DataFrame({'datetime': datetime, 'wait': wait})
+            name = ('/Users/grahamkaluzny/Documents/magic_kingdom/' + title + 
+                    '_' + date_str + '.csv')
+            df.to_csv(name, index = False)
+        
     
-    ## Find time and wait times
-    time_wait = [re.findall('new Date\((.+)\),,,,,,,,(\d+),,,,,null,,null', i.text) 
-        for i in script]
-    time_wait = list(filter(None, time_wait))
+    ## Find opening, closing, and EMH times
+    table = soup.find('table').getText()
+    times = re.findall('\d*:\d*[ap]m', table)
+    hours = pd.DataFrame({'opening': [times[0]], 'closing': [times[1]]})
+    name = ('/Users/grahamkaluzny/Documents/magic_kingdom/hours_' + date_str + 
+            '.csv')
+    hours.to_csv(name, index = False)
     
-    ## Create separate csv for each ride on each day
-    for i, j in enumerate(time_wait):
-        df = pd.DataFrame(j, columns = ['time', 'wait'])
-        name = title[i][0] + '_' + date_str + '.csv'
-        df.to_csv('/Users/grahamkaluzny/Documents/magic_kingdom/' + name)
+
+    
+    
         
     
     
